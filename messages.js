@@ -1,0 +1,1 @@
+exports.messages = ['Sample Message','Test Message','Hello world','lorem ipsum'];
