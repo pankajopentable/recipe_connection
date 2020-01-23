@@ -1,0 +1,1 @@
+mongodb+srv://pankaj:<password>@cluster0-tdqek.mongodb.net/test?retryWrites=true&w=majority
