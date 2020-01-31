@@ -1,49 +1,35 @@
-const port =3000,
-http = require("http"),
-httpStatus = require("http-status-codes"),
-utils = require("./utils"),
-contentTypes = require("./contentTypes"),
-// app = http.createServer(),
-fs=require("fs"),
-routers=require("./routes");
+express = require("express"),
+layouts = require("express-ejs-layouts"),
+homeController=require("./controllers/homeController"),
+errorController = require("./controllers/errorController"),
+MongoDB = require("mongodb").MongoClient,
+mongoose = require("mongoose"),
+app = express();
+const dbUrl = "mongodb+srv://recipe_pankaj:c3lcq3kXRMK50EPp@cluster0-tdqek.mongodb.net/recipe_db?retryWrites=true&w=majority";
+const dbName = 'recipe_db';
+mongoose.connect(dbUrl,{useNewUrlParser:true,useUnifiedTopology:true});
+let db = mongoose.connection;
+db.once("open",()=>{
+    console.log("Successfully conneted to mongodb server.")
+});
+app.set("port",3000);
+app.set("view engine","ejs");
+app.use(layouts),
+app.use(express.urlencoded({
+    extended:false
+}));
+
+app.use(express.json());
+app.use(express.static('public'));
+app.get("/",homeController.homePage);
+
+app.get("/courses.html",homeController.showCourses);
+app.get("/contact.html",homeController.showSignup);
+app.post("/",homeController.postSignup);
 
 
-const sendErrorMessages = (res)=>{
-    res.writeHead(httpStatus.NOT_FOUND,contentTypes.html);
-    res.end("NOT FOUND")
-}
-routers.get('/index.html',(req,res)=>{
-    res.writeHead(httpStatus.OK,contentTypes.html);
-    utils.getFile("views/index.html",res);
+app.use(errorController.logErrors);
+app.use(errorController.notFound);
+app.listen(app.get("port"),()=>{
+    console.log(`App running on port ${app.get("port")}`)
 });
-routers.get('/contact.html',(req,res)=>{
-    res.writeHead(httpStatus.OK,contentTypes.html);
-    utils.getFile("views/contact.html",res);
-});
-routers.get('/courses.html',(req,res)=>{
-    res.writeHead(httpStatus.OK,contentTypes.html);
-    utils.getFile("views/courses.html",res);
-});
-routers.get('/thanks.html',(req,res)=>{
-    res.writeHead(httpStatus.OK,contentTypes.html);
-    utils.getFile("views/thanks.html",res);
-});
-routers.post('/',(req,res)=>{
-    res.writeHead(httpStatus.OK,contentTypes.html);
-    utils.getFile("views/thanks.html",res);
-});
-routers.get("/bootstrap.css",(req,res)=>{
-    res.writeHead(httpStatus.OK,contentTypes.css)
-    utils.getFile('public/css/bootstrap.css',res);
-})
-routers.get("/confetti_cuisine.css",(req,res)=>{
-    res.writeHead(httpStatus.OK,contentTypes.css)
-    utils.getFile('public/css/confetti_cuisine.css',res);
-})
-routers.get("/product.jpg",(req,res)=>{
-    res.writeHead(httpStatus.OK,contentTypes.jpg)
-    utils.getFile('public/images/product.jpg',res);
-})
-app=http.createServer(routers.handler).listen(port);
-
-

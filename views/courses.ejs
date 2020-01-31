@@ -1,0 +1,18 @@
+<div class="container">
+    <% if(isLogin){ %>
+        <p>Hello ABC</p>
+    <% } else { %>
+        <p>Hello Guest</p>
+    <% } %>
+      <div class="col-sm-6"><img src="/images/product.jpg" alt="" /></div>
+      <div class="col-sm-6">
+        <h1 class="title">Learn to cook cutting edge food</h1>
+        <h3>Our Courses:</h3>
+        <ul>
+         <% offerCourses.forEach(course=>{ %>
+            <li> <%= course.title %> : <%= course.price %> </li>
+         <% }) %>
+        </ul>
+        <a href="/contact.html">Contact Us</a> today!
+      </div>
+</div>

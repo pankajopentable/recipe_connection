@@ -11,7 +11,11 @@
   "license": "ISC",
   "dependencies": {
     "cities": "^2.0.0",
+    "ejs": "^3.0.1",
     "express": "^4.17.1",
-    "http-status-codes": "^1.4.0"
+    "express-ejs-layouts": "^2.5.0",
+    "http-status-codes": "^1.4.0",
+    "mongodb": "^3.5.2",
+    "mongoose": "^5.8.10"
   }
 }
