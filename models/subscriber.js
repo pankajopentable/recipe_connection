@@ -14,7 +14,8 @@ const subscriberSchema = mongoose.Schema({
         type:Number,
         min:[10000,"Zipcode to short"],
         max:99999
-    }
+    },
+    courses:[{type:mongoose.Schema.Types.ObjectId,ref:"Course"}]
 });
 subscriberSchema.methods.getInfo = function(){
     return `Name ${this.name}, Email:${this.email}, zipcode: ${this.zipcode}`;
