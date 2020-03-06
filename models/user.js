@@ -1,5 +1,6 @@
 const mongoose = require("mongoose"),
 {Schema} = mongoose,
+Subscriber = require("./subscriber");
 userSchema = new Schema({
     name:{
         first:{
@@ -31,5 +32,20 @@ userSchema = new Schema({
 },{ timestamps:true});
 userSchema.virtual("fullName").get(function(){
     return `${this.name.first} ${this.name.last_name}`;
+});
+
+userSchema.pre("save",function(next){
+    let user = this;
+    if(user.subscribedAccount === undefined) {
+        Subscriber.findOne({email:user.email}).then(subs=>{
+            user.subscribedAccount = subs;
+            next();
+        }).catch(err=>{
+            console.log(`Error occured ${err}`);
+            next(err);
+        })
+    } else {
+        next();
+    }
 });
 module.exports = mongoose.model("User",userSchema);

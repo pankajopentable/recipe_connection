@@ -6,14 +6,16 @@
             <th>Name</th>
             <th>Email</th>
             <th>Zip Code</th>
+            <th>Edit</th>
         </tr>
     </thead>
     <tbody>
         <% users.forEach(user=>{ %>
         <tr>
-            <th> <%= user.fullName %> </th>
-            <th><%= user.email %> </th>
-            <th><%= user.zipCode %> </th>
+            <td> <%= user.fullName %> </td>
+            <td><%= user.email %> </td>
+            <td><%= user.zipCode %> </td>
+            <td><a href="/users/<%= user._id %>/edit">Edit</a><br /><a href="/users/delete/<%= user._id %>?_method=DELETE" onclick="return confirm('Are you sure you want to delete?')">Delete</a> </td>
         </tr>
         <% }) %>
     </tbody>
