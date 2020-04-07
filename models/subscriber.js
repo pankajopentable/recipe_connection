@@ -16,6 +16,8 @@ const subscriberSchema = mongoose.Schema({
         max:99999
     },
     courses:[{type:mongoose.Schema.Types.ObjectId,ref:"Course"}]
+},{
+    timestamps:true
 });
 subscriberSchema.methods.getInfo = function(){
     return `Name ${this.name}, Email:${this.email}, zipcode: ${this.zipcode}`;

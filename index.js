@@ -1,6 +1,8 @@
 express = require("express"),
 layouts = require("express-ejs-layouts"),
 homeController=require("./controllers/homeController"),
+coursesController=require("./controllers/coursesController"),
+subscribersController = require("./controllers/subscribersController"),
 errorController = require("./controllers/errorController"),
 usersController = require("./controllers/usersController"),
 MongoDB = require("mongodb").MongoClient,
@@ -9,9 +11,14 @@ Course = require("./models/course"),
 User = require("./models/user"),
 router=express.Router(),
 methodOverride = require("method-override"),
-app = express();
+app = express(),
+expressSession = require("express-session"),
+cookieParser = require("cookie-parser"),
+connectFlash = require("connect-flash"),
+passport=require("passport"),
+User = require("./models/user");
+
 const mongoose = require("mongoose");
-const subscribersController = require("./controllers/subscribersController");
 
 const dbUrl = "mongodb+srv://recipe_pankaj:c3lcq3kXRMK50EPp@cluster0-tdqek.mongodb.net/recipe_db?retryWrites=true&w=majority";
 const dbName = 'recipe_db';
@@ -34,23 +41,70 @@ router.use(methodOverride("_method",{
     methods:["POST","GET"]
 }));
 router.use(express.json());
+// router.use(expressValidator());
 router.use(express.static('public'));
+router.use(cookieParser("secret_key"));
+router.use(expressSession({
+    secret:"secret_key",
+    cookie:{
+        maxAge:4000000
+    },
+    resave:false,
+    saveUninitialized:false
+}));
+router.use(passport.initialize());
+router.use(passport.session());
+passport.use(User.createStrategy());
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
 
-router.get("/",homeController.homePage);
-router.get("/courses.html",homeController.showCourses);
-router.get("/contact.html",homeController.showSignup);
-router.get("/subscribers",subscribersController.getAllSubscriber,(req,res,next)=>{ res.render("subscriber",{subscribers:req.data}); });
-router.post("/",homeController.postSignup);
-router.post("/subscribe",subscribersController.saveSubscriber);
-router.get("/users",usersController.index, usersController.indexView);
-router.get("/users/create",usersController.newUser);
-router.get("/users/:user_id/edit",usersController.editUser);
-router.put("/users/:user_id/update",usersController.update,usersController.redirectView);
-router.post("/users/create",usersController.create, usersController.redirectView);
-router.delete("/users/delete/:id",usersController.deleteUser, usersController.redirectView);
-router.use(errorController.logErrors);
-router.use(errorController.respondNoResourceFound);
-router.use(errorController.respondInternalError);
+router.use(connectFlash());
+
+router.use((req,res,next)=>{
+    res.locals.flashMessages = req.flash();
+    next();
+});
+router.get("/", homeController.index);
+router.get("/login",usersController.loginView);
+router.post("/login",usersController.authenticate,usersController.redirectView);
+router.get("/users", usersController.index, usersController.indexView);
+router.get("/users/new", usersController.newUser);
+router.post("/users/create", usersController.validate,usersController.create, usersController.redirectView);
+router.get("/users/:id/edit", usersController.edit);
+router.put("/users/:id/update", usersController.update, usersController.redirectView);
+router.get("/users/:id", usersController.show, usersController.showView);
+// router.delete("/users/:id/delete", usersController.delete, usersController.redirectView);
+
+router.get("/subscribers", subscribersController.index, subscribersController.indexView);
+// router.get("/subscribers/new", subscribersController.new);
+router.post(
+  "/subscribers/create",
+  subscribersController.create,
+  subscribersController.redirectView
+);
+router.get("/subscribers/:id/edit", subscribersController.edit);
+router.put(
+  "/subscribers/:id/update",
+  subscribersController.update,
+  subscribersController.redirectView
+);
+router.get("/subscribers/:id", subscribersController.show, subscribersController.showView);
+// router.delete(
+//   "/subscribers/:id/delete",
+//   subscribersController.delete,
+//   subscribersController.redirectView
+// );
+
+router.get("/courses", coursesController.index, coursesController.indexView);
+// router.get("/courses/new", coursesController.new);
+router.post("/courses/create", coursesController.create, coursesController.redirectView);
+router.get("/courses/:id/edit", coursesController.edit);
+router.put("/courses/:id/update", coursesController.update, coursesController.redirectView);
+router.get("/courses/:id", coursesController.show, coursesController.showView);
+router.delete("/courses/:id/delete", coursesController.delete, coursesController.redirectView);
+
+router.use(errorController.pageNotFoundError);
+router.use(errorController.internalServerError);
 
 app.use("/",router);
 app.listen(app.get("port"),()=>{

@@ -1,15 +1,19 @@
 const mongoose = require("mongoose"),
 {Schema} = mongoose,
-Subscriber = require("./subscriber");
+passportLocalMongoose = require('passport-local-mongoose'),
+Subscriber = require("./subscriber"),
+bcrypt=require("bcrypt");
 userSchema = new Schema({
     name:{
         first:{
             type:String,
-            trim:true
+            trim:true,
+            required:true
         },
         last_name:{
             type:String,
-            trim:true
+            trim:true,
+            required:true
         }
     },
     email:{
@@ -35,6 +39,7 @@ userSchema.virtual("fullName").get(function(){
 });
 
 userSchema.pre("save",function(next){
+    console.log('lodfpp');
     let user = this;
     if(user.subscribedAccount === undefined) {
         Subscriber.findOne({email:user.email}).then(subs=>{
@@ -47,5 +52,30 @@ userSchema.pre("save",function(next){
     } else {
         next();
     }
+});
+// userSchema.pre("save",function(next){
+//     console.log('jdfkkl');
+   
+//   let user2 = this;
+//   console.log(user2.password);
+//   bcrypt.hash(user2.password, 10)
+//     .then(hash => {
+//       user2.password = hash;
+//       console.log(user2.password)
+//       next();
+//     })
+//     .catch(error => {
+//       console.log(`Error in hashing password: ${error.message}`);
+//       next(error);
+//     });
+// });
+userSchema.methods.passwordComparison =  function(inputPassword){
+    let user = this;
+    console.log(user.password+' UserPassword--: '+inputPassword);
+
+    return bcrypt.compare(inputPassword, user.password);
+}
+userSchema.plugin(passportLocalMongoose, {
+    usernameField:"email"
 });
 module.exports = mongoose.model("User",userSchema);
