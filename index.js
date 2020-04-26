@@ -62,6 +62,8 @@ router.use(connectFlash());
 
 router.use((req,res,next)=>{
     res.locals.flashMessages = req.flash();
+    res.locals.isLoggedIn = req.isAuthenticated();
+    res.locals.currentUser = req.user;
     next();
 });
 router.get("/", homeController.index);
@@ -69,6 +71,7 @@ router.get("/login",usersController.loginView);
 router.post("/login",usersController.authenticate,usersController.redirectView);
 router.get("/users", usersController.index, usersController.indexView);
 router.get("/users/new", usersController.newUser);
+router.get("/logout", usersController.logout,usersController.redirectView);
 router.post("/users/create", usersController.validate,usersController.create, usersController.redirectView);
 router.get("/users/:id/edit", usersController.edit);
 router.put("/users/:id/update", usersController.update, usersController.redirectView);

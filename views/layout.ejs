@@ -27,6 +27,11 @@
 			<a href="/users">
 				<span class="button">Users</span>
 			</a>
+            <% if(isLoggedIn){ %>
+                <a href="/logout">
+                    <span class="button">Logout</span>
+                </a>
+            <% } %>
 		</div>
 	</div>
     <div class="flashes">

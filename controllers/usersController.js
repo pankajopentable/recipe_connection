@@ -2,6 +2,7 @@
 const { check, body, validationResult } = require('express-validator');
 const User = require("../models/user"),
 passportLocalMongoose = require("passport-local-mongoose"),
+passport =  require("passport"),
   getUserParams = body => {
     return {
       name: {
@@ -36,20 +37,40 @@ module.exports = {
   },
 
   create: (req, res, next) => {
-       if (req.skip) next();
-    let userParams = getUserParams(req.body);
+      const err = validationResult(req);   
+      let messages = err.array().map(e=>e.msg);
+        
+       if (messages.length>0){
 
-    User.create(userParams)
-      .then(user => {
-        req.flash("success","Account created.");
-        res.locals.redirect = "/users";
-        res.locals.user = user;
-        next();
-      })
-      .catch(error => {
-        console.log(`Error saving user: ${error.message}`);
-        next(error);
-      });
+            req.flash("error",messages.join(" and "));
+            res.locals.redirect = "/users/new"
+            next();
+       } 
+    let userParams = getUserParams(req.body);
+    console.log('hello'+req.body.password);
+    User.register(userParams,req.body.password, (error, user)=>{
+        if(user) {
+            req.flash("success","Account created.");
+            res.locals.redirect = "/users";
+            res.locals.user = user;
+            next();
+        } else {
+            req.flash("error","Error occured."+error.message);
+            console.log(`Error saving user: `);
+            res.locals.redirect= '/users/new';
+            next();
+        }
+    });
+    //   .then(user => {
+    //     req.flash("success","Account created.");
+    //     res.locals.redirect = "/users";
+    //     res.locals.user = user;
+    //     next();
+    //   })
+    //   .catch(error => {
+    //     console.log(`Error saving user: ${error.message}`);
+    //     next(error);
+    //   });
   },
 
   redirectView: (req, res, next) => {
@@ -123,7 +144,12 @@ module.exports = {
   loginView:(req,res)=>{
       res.render("users/login");
   },
-  authenticate:(req,res,next)=>{
+  authenticate:passport.authenticate("local", {
+      failureRedirect:"/login",
+      failureFlash:"Failed to login",
+      successRedirect:"/users",
+      successFlash:"Login Success"
+  })/*(req,res,next)=>{
       let email = req.body.email;
       User.findOne({email:email}).then(user=>{
           user.passwordComparison(req.body.password).then(passwordMatch=>{
@@ -143,24 +169,26 @@ module.exports = {
           res.locals.redirect = "/login";
           next();
       })
-  },
-  validate:(req,res,next)=>{
-    //   body("email").isEmail().normalizeEmail({
-    //       all_lowercase:true
-    //   }).trim();
-    body("email","Please enter valid email").isEmail().isEmpty();
-    const err = validationResult(req);   
-    res.json(err.array());
+  }*/,
+  validate:[body("email","Please enter valid email").isEmail().isEmpty()],
+  //(req,res,next)=>{
+     
     // const errors = validationResult(req);   
     // res.json(errors.array());
     // if (!errors.isEmpty()) {
     //     let messages = errors.array().map(e=>e.msg);
-    //     req.skip = true;
+        // req.skip = false;
     //     req.flash("error",messages.join(" and "));
     //     res.locals.redirect = "/users/new"
     //     next();
     // }   else {
-    //     next();
+        // next();
     // }
+//   },
+  logout:(req,res,next) => {
+      req.logout();
+      req.flash("success","Successfully logout");
+      res.locals.redirect = "/";
+      next();
   }
 };
